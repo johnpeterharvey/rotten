@@ -10,14 +10,15 @@ namespace rotten
 {
 	class MainClass
 	{
-		private static String baseDirectory = "C:\\Users\\John\\movieTest";
-		private static String logFile = "C:\\Users\\John\\movieTest\\log.txt";
+		private static String baseDirectory = "//home//john//movieTest";
+		private static String logFile = "//home//john//log.txt";
 
 		private static GetInfo dataFetcher;
 		private static DataParser dataParser;
 		private static GetIMDBInfo imdbDataFetcher;
 		private static IMDBDataParser imdbDataParser;
-
+		private static OutputWriter outputWriter;
+		
 		private static Logger logger;
 
 		private static ArrayList failedMovies = new ArrayList();
@@ -30,14 +31,15 @@ namespace rotten
 			dataParser = new DataParser();
 			imdbDataFetcher = new GetIMDBInfo();
 			imdbDataParser = new IMDBDataParser();
+			outputWriter = new OutputWriter();
 
 			String[] movieDirectory = GetMovieNames();
 			logger.log("Fetched [" + movieDirectory.Length.ToString() + "] movies");
-
+			
 			foreach (String moviePath in movieDirectory) {
 				logger.flush();
 
-				String movieName = moviePath.Replace(baseDirectory + "\\", "");
+				String movieName = moviePath.Replace(baseDirectory + "/", "");
 				logger.log("Processing [" + movieName + "]");
 
 				//Split out the directory name to get title and year
@@ -51,21 +53,21 @@ namespace rotten
 
 				if (rottenParsed == null) {
 					failedMovies.Add(movieName);
-					logger.log("Failed to get rt data for movie [" + movieName + "]");
+					logger.log("Failed to get rottentomatoes data for movie [" + movieName + "]");
 					continue;
 				}
 
-				processMovieInfo(rottenParsed.Movies[0], movieName, dataFromFile, moviePath, failedMovies);
+				processMovieInfo(rottenParsed.Movies[0], dataFromFile, moviePath, failedMovies);
 			}
 
 			logger.closeLog();
 		}
 
-		private static void processMovieInfo(Movie info, String movieName, DataFromFile dataFromFile, String fullPath, ArrayList failedMovies)
+		private static void processMovieInfo(Movie info, DataFromFile dataFromFile, String fullPath, ArrayList failedMovies)
 		{
 			//Check release year
 			if (!dataFromFile.getYear().Equals(info.Year)) {
-				failedMovies.Add(movieName);
+				failedMovies.Add(dataFromFile.getName());
 				logger.log("Error - directory year " + dataFromFile.getYear() + " does not equal retrieved year " + info.Year);
 				return;
 			}
@@ -76,7 +78,7 @@ namespace rotten
 			info.Links.TryGetValue("cast", out fullCastUrl);
 			
 			if (fullCastUrl == null) {
-				logger.log("Error - full cast url for " + movieName + " was null");
+				logger.log("Error - full cast url for " + dataFromFile.getName() + " was null");
 			} else {
 				String rottenCastJson = dataFetcher.getCastData(fullCastUrl);
 				fullCast = dataParser.getCastParsedData(rottenCastJson);
@@ -88,34 +90,21 @@ namespace rotten
 			info.Alternate_IDs.TryGetValue("imdb", out imdbNumber);
 			
 			if (imdbNumber == null) {
-				logger.log("Error - IMDB number for " + movieName + " was null");
+				logger.log("Error - IMDB number for " + dataFromFile.getName() + " was null");
 			} else {
 				imdbJson = imdbDataFetcher.getData(imdbNumber);
-				
 			}
 			
 			//Download the movie poster
 			String posterUrl = null;
 			info.Posters.TryGetValue("original", out posterUrl);
 			if (posterUrl == null) {
-				logger.log("Error - Poster url for movie " + movieName + " was null");
+				logger.log("Error - Poster url for movie " + dataFromFile.getName() + " was null");
 			} else {
-				saveCover(posterUrl, fullPath, failedMovies, movieName);
+				saveCover(posterUrl, fullPath, failedMovies, dataFromFile.getName());
 			}
 			
-			StreamWriter outwrite = new StreamWriter(fullPath + "\\testinfo.txt", false);
-			outwrite.WriteLine(info.Title + " - " + info.Year);
-			outwrite.WriteLine(info.Runtime + "mins");
-			foreach (Actor a in fullCast.Cast) {
-				if (a.Characters != null && a.Characters.Length > 0) {
-					outwrite.Write(a.Name + " - ");
-					foreach (String s in a.Characters)
-						outwrite.Write(s + " ");
-					outwrite.WriteLine();
-				}
-			}
-			outwrite.Flush();
-			outwrite.Close();
+			outputWriter.WriteOutput(fullPath + "//Info.xml", info, dataFromFile, fullCast);
 		}
 
 		//Get all subdirectories of the movie directory
@@ -139,14 +128,16 @@ namespace rotten
 			logger.log(tempFile);
 			client.DownloadFile(new Uri(url), tempFile);
 
-			if (File.Exists(destination + "\\Folder.jpg")) {
+			if (File.Exists(destination + "//Folder.jpg")) {
 				SHA512 sha = SHA512.Create();
 				Byte[] hash = sha.ComputeHash(new StreamReader(tempFile).BaseStream);
 
-				Byte[] existingImageHash = sha.ComputeHash(new StreamReader(destination + "\\Folder.jpg").BaseStream);
+				Byte[] existingImageHash = sha.ComputeHash(new StreamReader(destination + "//Folder.jpg").BaseStream);
 
 				Boolean hashMatch = false;
-				//TODO
+				
+				hashMatch = existingImageHash.Equals(hash);
+				
 				if (!hashMatch) {
 					logger.log("Existing file hash does not match downloaded for movie [" + movieName + "]");
 					failedMovies.Add(movieName);
@@ -155,7 +146,7 @@ namespace rotten
 				}
 			} else {
 				logger.log("No image yet, saving to [" + destination + "]");
-				File.Copy(tempFile, destination + "\\Folder.jpg");
+				File.Copy(tempFile, destination + "//Folder.jpg");
 			}
 		}
 	}

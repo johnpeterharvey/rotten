@@ -9,4 +9,3 @@ namespace rotten
 		public String[] Characters { get; set; }
 	}
 }
-

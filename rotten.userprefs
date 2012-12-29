@@ -1,12 +1,14 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="rotten/GetInfo.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="rotten/OutputWriter.cs">
     <Files>
-      <File FileName="rotten/GetIMDBInfo.cs" Line="20" Column="12" />
-      <File FileName="rotten/Main.cs" Line="19" Column="26" />
-      <File FileName="rotten/DataParser.cs" Line="21" Column="59" />
-      <File FileName="rotten/IMDBDataParser.cs" Line="14" Column="1" />
-      <File FileName="rotten/GetInfo.cs" Line="55" Column="4" />
+      <File FileName="rotten/GetIMDBInfo.cs" Line="21" Column="27" />
+      <File FileName="rotten/Main.cs" Line="52" Column="67" />
+      <File FileName="rotten/IMDBDataParser.cs" Line="10" Column="16" />
+      <File FileName="rotten/Actor.cs" Line="11" Column="2" />
+      <File FileName="rotten/DataFromFile.cs" Line="1" Column="1" />
+      <File FileName="rotten/Logger.cs" Line="1" Column="1" />
+      <File FileName="rotten/OutputWriter.cs" Line="46" Column="38" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
