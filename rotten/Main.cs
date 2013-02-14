@@ -10,8 +10,8 @@ namespace rotten
 {
 	class MainClass
 	{
-		private static String baseDirectory = "//home//john//movieTest";
-		private static String logFile = "//home//john//log.txt";
+		private static String baseDirectory;
+		private static String logFile;
 
 		private static GetInfo dataFetcher;
 		private static DataParser dataParser;
@@ -25,7 +25,21 @@ namespace rotten
 
 		public static void Main (string[] args)
 		{			
-			logger = new Logger(logFile);
+			askForInput(out baseDirectory, out logFile);
+            if (logFile == null || String.IsNullOrEmpty(logFile))
+            {
+                Console.WriteLine("Log file specced was empty");
+                Console.ReadLine();
+                return;
+            }
+
+            logger = new Logger(logFile);
+            if (baseDirectory == null || String.IsNullOrEmpty(baseDirectory))
+            {
+                logger.log("Base directory given was empty");
+                logger.closeLog();
+                return;
+            }
 
 			dataFetcher = new GetInfo();
 			dataParser = new DataParser();
@@ -62,6 +76,15 @@ namespace rotten
 
 			logger.closeLog();
 		}
+
+        private static void askForInput(out String baseDirectory, out String logFile)
+        {
+            Console.WriteLine("Please enter base directory for movies:");
+            baseDirectory = Console.ReadLine();
+
+            Console.WriteLine("Please enter log file name:");
+            logFile = Console.ReadLine();
+        }
 
 		private static void processMovieInfo(Movie info, DataFromFile dataFromFile, String fullPath, ArrayList failedMovies)
 		{
